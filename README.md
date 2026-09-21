@@ -10,6 +10,14 @@ A browser-based tool for designing and visualising a Visioball speaker layout.
 - Allows passive radiators to be added to the sphere layout.
 - Includes speaker placement, sphere sizing, shape suggestions, directivity, sound-range visualisation, layer toggles, rotation, zoom, and layout details.
 
+## Technology
+
+The tool is built with HTML, CSS, and JavaScript. It uses Three.js for the 3D visualisation and runs directly in a web browser without a build step.
+
+## Mathematical basis
+
+The layout is based on spherical geometry and mathematical polyhedra. It uses regular Platonic solids and semi-regular Archimedean solids, including tetrahedrons, cubes, octahedrons, icosahedrons, dodecahedrons, and truncated solids, to distribute components across the sphere.
+
 ## How to use
 
 1. Open `speaker layout.html` in a modern browser.
