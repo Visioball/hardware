@@ -2,6 +2,14 @@
 
 A browser-based tool for designing and visualising a Visioball speaker layout.
 
+## What it supports
+
+- Visualises a balanced spherical speaker and LED layout.
+- Takes mass balance into account when positioning components.
+- Supports LED lighting on the edges around the speakers, including LED projection and colour controls.
+- Allows passive radiators to be added to the sphere layout.
+- Includes speaker placement, sphere sizing, shape suggestions, directivity, sound-range visualisation, layer toggles, rotation, zoom, and layout details.
+
 ## How to use
 
 1. Open `speaker layout.html` in a modern browser.
