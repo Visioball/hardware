@@ -4,7 +4,7 @@ A browser-based tool for designing and visualising a Visioball speaker layout.
 
 ## How to use
 
-1. Open `speaker layout.html` in a modern browser.
+1. Open `index.html` in a modern browser.
 2. Set the speaker count, passive-radiator count, sphere diameter, and shape.
 3. Use **Suggest shape** for an automatic shape recommendation, then select **Apply layout**.
 4. Use **Minimum** to calculate the smallest safe sphere diameter.
