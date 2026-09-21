@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>3D Spherical Speaker Layout Tool</title>
+    <link rel="stylesheet" href="styles.css">
+    <!-- Include Three.js via CDN for 3D Rendering -->
+    <script src="https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js"></script>
+</head>
+<body>
+
+    <div id="ui-overlay" class="compact">
+        <div class="panel-column">
+        <div class="panel-header">
+            <h3>VISIOBALL</h3>
+            <button id="info-button" class="info-button" type="button" aria-expanded="false" aria-controls="app-explanation" title="Show information">i</button>
+        </div>
+        <label class="control-row suggestion-input"> <span>Speakers</span><input id="speaker-count" type="number" min="1" max="20" value="6"></label>
+        <label class="control-row suggestion-input"> <span>Passive radiators</span><input id="radiator-count" type="number" min="0" max="19" value="4"></label>
+        <label class="control-row suggestion-input"> <span>Sphere diameter (mm)</span><span class="field-with-action"><input id="sphere-diameter" type="number" min="40" max="1000" step="1" value="100"><button id="minimum-diameter" type="button" title="Set the smallest safe diameter">Minimum</button></span></label>
+        <label class="control-row shape-control suggestion-input"> <span>Shape</span><select id="shape-select">
+            <option value="auto">Suggest least-face shape</option>
+            <optgroup label="Polyhedra (3D, usable)">
+                <option value="tetrahedron">Tetrahedron (4 faces)</option>
+                <option value="cube">Cube / hexahedron (6 faces)</option>
+                <option value="octahedron">Octahedron (8 faces)</option>
+                <option value="icosahedron">Icosahedron (20 faces)</option>
+                <option value="truncated-hexahedron">Truncated hexahedron (14 faces)</option>
+                <option value="truncated-octahedron">Truncated octahedron (14 faces)</option>
+                <option value="cuboctahedron">Cuboctahedron (14 faces)</option>
+                <option value="dodecahedron">Dodecahedron (12 faces)</option>
+            </optgroup>
+        </select></label>
+        <label class="control-row"> <span>Directivity frequency (Hz)</span><input id="directivity-frequency" type="number" min="500" max="20000" step="100" value="1000"></label>
+        <label class="control-row"> <span>Sound range outward (mm)</span><input id="sound-range" type="number" min="40" max="1000" step="1" value="50"></label>
+        <div class="button-row">
+            <button id="suggest-shape" type="button">Suggest shape</button>
+            <button id="apply-layout" type="button">Apply layout</button>
+        </div>
+        <p id="shape-suggestion" aria-live="polite"></p>
+        <p id="layout-status" aria-live="polite"></p>
+        <div class="legend-item">
+            <button class="legend-toggle" type="button" data-layer="speakers" aria-pressed="true">
+                <span class="color-box spk-box"></span>
+                <span>32mm speakers centered on faces</span>
+            </button>
+        </div>
+        <div class="legend-item">
+            <button class="legend-toggle" type="button" data-layer="radiators" aria-pressed="true">
+                <span class="color-box rad-box"></span>
+                <span id="radiator-size-label">Passive radiators (dynamic size)</span>
+            </button>
+        </div>
+        <div class="legend-item">
+            <button class="legend-toggle" type="button" data-layer="wireframe" aria-pressed="true">
+                <span class="color-box wire-box"></span>
+                <span>Shape wireframe</span>
+            </button>
+        </div>
+        <div class="legend-item">
+            <button class="legend-toggle" type="button" data-layer="shell" aria-pressed="false">
+                <span class="color-box shell-box"></span>
+                <span>Sphere shell</span>
+            </button>
+        </div>
+        <div class="legend-item">
+            <button class="legend-toggle" type="button" data-layer="dimension" aria-pressed="false">
+                <span class="color-box dimension-box"></span>
+                <span>Sphere diameter</span>
+            </button>
+        </div>
+        <div class="legend-item">
+            <button class="legend-toggle" type="button" data-layer="directivity" aria-pressed="false">
+                <span class="color-box directivity-box"></span>
+                <span>Speaker directivity (assumed)</span>
+            </button>
+        </div>
+        <div class="legend-item">
+            <button class="legend-toggle" type="button" data-layer="pr-directivity" aria-pressed="false">
+                <span class="color-box pr-directivity-box"></span>
+                <span>PR low-frequency field (assumed)</span>
+            </button>
+        </div>
+        <div class="legend-item led-layer-item">
+            <button class="legend-toggle" type="button" data-layer="led" aria-pressed="false">
+                <span class="color-box led-box"></span>
+                <span>LED shell projection</span>
+            </button>
+            <div id="led-color-menu" class="led-menu" hidden>
+                <div class="led-controls" aria-label="Three LED colors per rib">
+                    <label>LED 1<input id="led-color-1" type="color" value="#b56cff"></label>
+                    <label>LED 2<input id="led-color-2" type="color" value="#b56cff"></label>
+                    <label>LED 3<input id="led-color-3" type="color" value="#b56cff"></label>
+                </div>
+            </div>
+        </div>
+        <hr style="border: 0; border-top: 1px solid #333; margin: 15px 0;">
+        <p><strong>Controls:</strong> Drag to rotate. Use the mouse wheel to zoom.</p>
+        </div>
+        <div id="app-explanation" class="explanation-column" hidden>
+            <details class="measurement-note" open>
+                <summary>How this tool works</summary>
+                <p><strong>Introduction</strong><br>This visualization helps design a balanced spherical speaker enclosure. It shows the selected solid, face-mounted 32 mm speakers, passive radiators, geometry guides, shell projection, and estimated radiation fields.</p>
+                <p><strong>Workflow</strong></p>
+                <ol>
+                    <li><strong>Read inputs.</strong> The app reads speaker count, radiator count, shape, sphere diameter, directivity frequency, and visual sound range.</li>
+                    <li><strong>Select the shape.</strong> Suggested shapes are compared from feasible polyhedra. Mass balance and directional separation are prioritized; face count is a secondary preference.</li>
+                    <li><strong>Place speakers.</strong> Speakers are placed first on outward-facing faces. With six speakers, the app prefers three opposing pairs. Otherwise it maximizes angular separation and balance.</li>
+                    <li><strong>Place radiators.</strong> PRs use remaining faces, avoiding speaker faces and maximizing separation. Every PR is at least the fixed speaker diameter.</li>
+                    <li><strong>Balance mass.</strong> Speakers are treated as heavier than PRs, and the weighted center offset is calculated and displayed.</li>
+                    <li><strong>Fit the enclosure.</strong> The shape is scaled after positions are selected so every component fits inside its face. The Minimum action finds the smallest safe diameter.</li>
+                    <li><strong>Render the layers.</strong> Components sit inside the wireframe, the wireframe sits inside the shell, and the LED projection sits outside the wireframe.</li>
+                    <li><strong>Estimate radiation.</strong> Speaker coverage is interpolated from the supplied CE32A-8 guidance by frequency. The PR field uses an assumed broad ±80° spread. Cone length is visual only, not measured acoustic range.</li>
+                </ol>
+                <p><strong>References and limits.</strong> <a href="https://polytope.miraheze.org/wiki/Polyhedron" target="_blank" rel="noreferrer">Polyhedra</a> provide the unique 3D faces used by this selector. 4D polytopes are excluded when their 3D projection duplicates one of these shapes. The CE32A-8 datasheet reports 77.9 dB @ 1 W/1 m but does not provide maximum SPL, room loss, or target-level range.</p>
+                <p><strong>Datasheet reference:</strong><br><a href="https://www.daytonaudio.com/images/resources/285-101-dayton-audio-ce32a-8-spec-sheet.pdf" target="_blank" rel="noreferrer">Dayton Audio CE32A-8 specification sheet</a></p>
+            </details>
+        </div>
+    </div>
+
+    <button id="settings-toggle" class="info-button settings-button" type="button" aria-expanded="true" title="Hide settings" aria-label="Hide settings">&#8592;</button>
+
+    <div id="canvas-container"></div>
+
+    <script src="geometry.js"></script>
+    <script src="layout.js"></script>
+    <script src="renderer.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>
